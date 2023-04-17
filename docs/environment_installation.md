@@ -7,7 +7,7 @@ Following https://mmdetection3d.readthedocs.io/en/latest/getting_started.html#in
 ssh -X lcurXXXX@lisa.surfsara.nl
 module purge
 module load 2021
-module load Anaconda3/2020.05
+module load Anaconda3/2021.05
 ```
 **1. LISA**
 open the .bashrc file (it should be in your home directory) and add the following lines to the end of the file and save it:\
