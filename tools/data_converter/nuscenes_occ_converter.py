@@ -47,7 +47,7 @@ def create_nuscenes_occ_infos(root_path,
         max_sweeps (int): Max number of sweeps.
             Default: 10
     """
-
+ 
     from nuscenes.nuscenes import NuScenes
     from nuscenes.can_bus.can_bus_api import NuScenesCanBus
     print(version, root_path)

@@ -3,7 +3,7 @@
 # ---------------------------------------------
 #  Modified by Zhiqi Li
 # ---------------------------------------------
- 
+
 from __future__ import division
 
 import argparse
@@ -29,6 +29,7 @@ from mmseg import __version__ as mmseg_version
 
 from mmcv.utils import TORCH_VERSION, digit_version
 
+import datetime
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Train a detector')
@@ -147,6 +148,8 @@ def main():
         # use config filename as default work_dir if cfg.work_dir is None
         cfg.work_dir = osp.join('./work_dirs',
                                 osp.splitext(osp.basename(args.config))[0])
+    else:
+        cfg.work_dir = osp.join(cfg.work_dir, datetime.datetime.utcnow().strftime("%Y-%m-%d_T_%H-%M-%SZ"))
     # if args.resume_from is not None:
     if args.resume_from is not None and osp.isfile(args.resume_from):
         cfg.resume_from = args.resume_from

@@ -1,0 +1,21 @@
+#!/bin/bash
+
+export ANN_SRC=/project/gpuuva020/3D-Occupancy-Prediction/CVPR2023-3D-Occupancy-Prediction-CV2/data/utils/copy
+export ANN_DST=/project/gpuuva020/3D-Occupancy-Prediction/CVPR2023-3D-Occupancy-Prediction-CV2/data/occ3d-nus
+export TABLE_SRC=/project/gpuuva020/3D-Occupancy-Prediction/CVPR2023-3D-Occupancy-Prediction-CV2/data/utils/copy/v1.0-trainval
+export TABLE_DST=/project/gpuuva020/3D-Occupancy-Prediction/CVPR2023-3D-Occupancy-Prediction-CV2/data/occ3d-nus/v1.0-trainval
+
+rm $ANN_DST/annotations.json
+cp $ANN_SRC/annotations.json  $ANN_DST/annotations.json
+
+rm $TABLE_DST/scene.json
+cp $TABLE_SRC/scene.json $TABLE_DST/scene.json
+
+rm $TABLE_DST/sample.json
+cp $TABLE_SRC/sample.json $TABLE_DST/sample.json
+
+rm $TABLE_DST/sample_data.json
+cp $TABLE_SRC/sample_data.json $TABLE_DST/sample_data.json
+
+rm $TABLE_DST/sample_annotation.json
+cp $TABLE_SRC/sample_annotation.json $TABLE_DST/sample_annotation.json

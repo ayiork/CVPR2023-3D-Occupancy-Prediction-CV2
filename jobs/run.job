@@ -1,0 +1,26 @@
+#!/bin/bash
+
+#SBATCH --partition=gpu_titanrtx_shared_course 
+#SBATCH --gres=gpu:2
+#SBATCH --job-name=Train3D 
+#SBATCH --ntasks=1 
+#SBATCH --cpus-per-task=4
+#SBATCH --time=48:00:00 
+#SBATCH --mem=32000M 
+#SBATCH --output=run%A.out  
+
+module purge 
+module load 2021 
+module load Anaconda3/2021.05 
+
+# Activate your environment 
+
+source activate /project/gpuuva020/3D-Occupancy-Prediction/.conda/envs/cv2_shared
+nvidia-smi
+srun /project/gpuuva020/3D-Occupancy-Prediction/CVPR2023-3D-Occupancy-Prediction-CV2/tools/dist_train.sh /project/gpuuva020/3D-Occupancy-Prediction/CVPR2023-3D-Occupancy-Prediction-CV2/projects/configs/bevformer/bevformer_small_occ.py 2
+
+#bevformer base
+# srun /project/gpuuva020/3D-Occupancy-Prediction/CVPR2023-3D-Occupancy-Prediction-CV2/tools/dist_train.sh /project/gpuuva020/3D-Occupancy-Prediction/CVPR2023-3D-Occupancy-Prediction-CV2/projects/configs/bevformer/bevformer_base_occ.py 1
+
+
+
