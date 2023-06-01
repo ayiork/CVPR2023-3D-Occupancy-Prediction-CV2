@@ -31,7 +31,7 @@ input_modality = dict(
 _dim_ = 256
 _pos_dim_ = _dim_//2
 _ffn_dim_ = _dim_*2
-_num_levels_ = 4
+_num_levels_ = 2
 bev_h_ = 200
 bev_w_ = 200
 queue_length = 4 # each sequence contains `queue_length` frames.
@@ -44,7 +44,7 @@ model = dict(
         depth=101,
         scales=4,
         num_stages=4,
-        out_indices=(1,2,3),
+        out_indices=(2,3),
         frozen_stages=1,
         base_width=26,
         init_cfg=dict(
@@ -60,7 +60,7 @@ model = dict(
 
     img_neck=dict(
         type='FPN',
-        in_channels=[512,1024,2048],
+        in_channels=[1024,2048],
         out_channels=_dim_,
         start_level=0,
         add_extra_convs='on_output',
@@ -239,7 +239,7 @@ total_epochs = 24
 evaluation = dict(interval=1, pipeline=test_pipeline)
 
 runner = dict(type='EpochBasedRunner', max_epochs=total_epochs)
-load_from = 'ckpts/cascade_mask_res2net_keys.pth'
+#load_from = 'ckpts/r101_dcn_fcos3d_pretrain.pth'
 log_config = dict(
     interval=50,
     hooks=[

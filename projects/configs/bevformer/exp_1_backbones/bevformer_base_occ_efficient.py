@@ -5,6 +5,7 @@ _base_ = [
 #
 plugin = True
 plugin_dir = 'projects/mmdet3d_plugin/'
+
 work_dir='outputs/exp1'
 # If point cloud range is changed, the models should also change their point
 # cloud range accordingly
@@ -35,27 +36,38 @@ _num_levels_ = 3
 bev_h_ = 200
 bev_w_ = 200
 queue_length = 4 # each sequence contains `queue_length` frames.
+
+#checkpoint_file = 'https://download.openmmlab.com/mmclassification/v0/convnext/downstream/convnext-small_3rdparty_32xb128-noema_in1k_20220301-303e75e3.pth'  # noqa
+checkpoint = 'https://download.openmmlab.com/mmclassification/v0/efficientnet/efficientnet-b3_3rdparty_8xb32-aa_in1k_20220119-5b4887a0.pth'  # noqa
 model = dict(
     type='BEVFormerOcc',
     use_grid_mask=True,
     video_test_mode=True,
     img_backbone=dict(
-        type='RegNet',
-        arch='regnetx_4.0gf',
-        out_indices=( 1,2,3),
+        type='Res2Net',
+        depth=101,
+        scales=4,
+        num_stages=4,
+        out_indices=(1,2,3),
         frozen_stages=1,
-        norm_cfg=dict(type='BN', requires_grad=True),
-        norm_eval=True,
-        style='pytorch',
+        base_width=26,
         init_cfg=dict(
-            type='Pretrained', checkpoint='open-mmlab://regnetx_4.0gf')),
+            type='Pretrained',
+            checkpoint='open-mmlab://res2net101_v1d_26w_4s'),
+        #norm_cfg=dict(type='BN2d', requires_grad=False),
+        #norm_eval=True,
+        #style='caffe',
+        #with_cp=True, # using checkpoint to save GPU memory
+        #dcn=dict(type='DCNv2', deform_groups=1, fallback_on_stride=False), # original DCNv2 will print log when perform load_state_dict
+        #stage_with_dcn=(False, False, True, True)
+        ),  
     img_neck=dict(
         type='FPN',
-        in_channels=[ 240,560,1360],
+        in_channels=[512, 1024, 2048],
         out_channels=_dim_,
         start_level=0,
         add_extra_convs='on_output',
-        num_outs=_num_levels_,
+        num_outs=4,
         relu_before_extra_convs=True),
     pts_bbox_head=dict(
         type='BEVFormerOccHead',
@@ -92,7 +104,7 @@ model = dict(
             embed_dims=_dim_,
             encoder=dict(
                 type='BEVFormerEncoder',
-                num_layers=3,
+                num_layers=4,
                 pc_range=point_cloud_range,
                 num_points_in_pillar=8,
                 return_intermediate=False,
@@ -126,6 +138,8 @@ model = dict(
             col_num_embed=bev_w_,
 
         ),
+
+
     # model training and testing settings
     train_cfg=dict(pts=dict(
         grid_size=[512, 512, 1],
@@ -141,16 +155,15 @@ model = dict(
 
 dataset_type = 'NuSceneOcc'
 data_root = 'data/occ3d-nus/'
+pkl_root = 'data_gen/base_dataset/'
 file_client_args = dict(backend='disk')
 occ_gt_data_root='data/occ3d-nus'
-pkl_root = 'data_gen/base_dataset/'
 
 train_pipeline = [
     dict(type='LoadMultiViewImageFromFiles', to_float32=True),
     dict(type='LoadOccGTFromFile',data_root=occ_gt_data_root),
     dict(type='PhotoMetricDistortionMultiViewImage'),
     dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True, with_attr_label=False),
-    dict(type='RandomScaleImageMultiViewImage', scales=[0.8]),
     dict(type='ObjectRangeFilter', point_cloud_range=point_cloud_range),
     dict(type='ObjectNameFilter', classes=class_names),
     dict(type='NormalizeMultiviewImage', **img_norm_cfg),
@@ -158,24 +171,24 @@ train_pipeline = [
     dict(type='DefaultFormatBundle3D', class_names=class_names),
     dict(type='CustomCollect3D', keys=[ 'img','voxel_semantics','mask_lidar','mask_camera'] )
 ]
+
 test_pipeline = [
     dict(type='LoadMultiViewImageFromFiles', to_float32=True),
     dict(type='LoadOccGTFromFile',data_root=occ_gt_data_root),
     dict(type='NormalizeMultiviewImage', **img_norm_cfg),
+    dict(type='PadMultiViewImage', size_divisor=32),
     dict(
         type='MultiScaleFlipAug3D',
         img_scale=(1600, 900),
         pts_scale_ratio=1,
         flip=False,
         transforms=[
-        dict(type='RandomScaleImageMultiViewImage', scales=[0.8]),
-        dict(type='PadMultiViewImage', size_divisor=32),
-        dict(
-            type='DefaultFormatBundle3D',
-            class_names=class_names,
-            with_label=False),
-        dict(type='CustomCollect3D', keys=['img'])
-    ])
+            dict(
+                type='DefaultFormatBundle3D',
+                class_names=class_names,
+                with_label=False),
+            dict(type='CustomCollect3D', keys=['img'])
+        ])
 ]
 
 data = dict(

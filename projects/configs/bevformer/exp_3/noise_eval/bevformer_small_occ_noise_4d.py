@@ -1,11 +1,14 @@
 _base_ = [
-    '../../datasets/custom_nus-3d.py',
-    '../../_base_/default_runtime.py'
+    '../../../datasets/custom_nus-3d.py',
+    '../../../_base_/default_runtime.py'
 ]
 #
 plugin = True
 plugin_dir = 'projects/mmdet3d_plugin/'
-work_dir='outputs/exp1'
+
+# Working Directory for storing the results
+work_dir='outputs/exp3/noise_train'
+
 # If point cloud range is changed, the models should also change their point
 # cloud range accordingly
 point_cloud_range = [-40, -40, -1.0, 40, 40, 5.4]
@@ -31,7 +34,7 @@ input_modality = dict(
 _dim_ = 256
 _pos_dim_ = _dim_//2
 _ffn_dim_ = _dim_*2
-_num_levels_ = 3
+_num_levels_ = 2
 bev_h_ = 200
 bev_w_ = 200
 queue_length = 4 # each sequence contains `queue_length` frames.
@@ -40,18 +43,19 @@ model = dict(
     use_grid_mask=True,
     video_test_mode=True,
     img_backbone=dict(
-        type='RegNet',
-        arch='regnetx_4.0gf',
-        out_indices=( 1,2,3),
+        type='ResNet',
+        depth=101,
+        num_stages=4,
+        out_indices=(2, 3),
         frozen_stages=1,
-        norm_cfg=dict(type='BN', requires_grad=True),
+        norm_cfg=dict(type='BN2d', requires_grad=False),
         norm_eval=True,
-        style='pytorch',
-        init_cfg=dict(
-            type='Pretrained', checkpoint='open-mmlab://regnetx_4.0gf')),
+        style='caffe',
+        dcn=dict(type='DCNv2', deform_groups=1, fallback_on_stride=False), # original DCNv2 will print log when perform load_state_dict
+        stage_with_dcn=(False, False, True, True)),
     img_neck=dict(
         type='FPN',
-        in_channels=[ 240,560,1360],
+        in_channels=[1024, 2048],
         out_channels=_dim_,
         start_level=0,
         add_extra_convs='on_output',
@@ -140,10 +144,39 @@ model = dict(
             pc_range=point_cloud_range)))))
 
 dataset_type = 'NuSceneOcc'
-data_root = 'data/occ3d-nus/'
+# data_root = 'data/occ3d-nus/'
+# data_root = 'noisy_images/black_25x25_cov-0.1/occ3d-nus/'
+# data_root = 'noisy_images/black_25x25_cov-0.2/occ3d-nus/'
+# data_root = 'noisy_images/black_25x25_cov-0.3/occ3d-nus/'
+# data_root = 'noisy_images/blurring_120x120_cov-0.15/occ3d-nus/'
+# data_root = 'noisy_images/blurring_120x120_cov-0.3/occ3d-nus/'
+# data_root = 'noisy_images/blurring_120x120_cov-0.5/occ3d-nus/'
+# data_root = 'noisy_images/blurring_120x120_cov-0.75/occ3d-nus/'
+# data_root = './noisy_images/data-perc-0.5_img-perc0.5_nsfrms-(1,3)-black_25x25_cov-0.1/occ3d-nus/'
+# data_root = './noisy_images/data-perc-0.75_img-perc0.75_nsfrms-(1,3)-black_25x25_cov-0.1/occ3d-nus/'
+# data_root = './noisy_images/data-perc-0.5_img-perc0.5_nsfrms-(1,3)-black_25x25_cov-0.2/occ3d-nus/'
+# data_root = './noisy_images/data-perc-0.75_img-perc0.75_nsfrms-(1,3)-black_25x25_cov-0.2/occ3d-nus/'
+# data_root = './noisy_images/data-perc-0.5_img-perc0.5_nsfrms-(1,3)-black_25x25_cov-0.3/occ3d-nus/'
+# data_root = './noisy_images/data-perc-0.75_img-perc0.75_nsfrms-(1,3)-black_25x25_cov-0.3/occ3d-nus/'
+# data_root = './noisy_images/data-perc-0.5_img-perc0.5_nsfrms-(1,3)-blurring_120x120_cov-0.15/occ3d-nus/'
+# data_root = './noisy_images/data-perc-0.75_img-perc0.75_nsfrms-(1,3)-blurring_120x120_cov-0.15/occ3d-nus/'
+# data_root = './noisy_images/data-perc-0.5_img-perc0.5_nsfrms-(1,3)-blurring_120x120_cov-0.3/occ3d-nus/'
+# data_root = './noisy_images/data-perc-0.75_img-perc0.75_nsfrms-(1,3)-blurring_120x120_cov-0.3/occ3d-nus/'
+# data_root = './noisy_images/data-perc-0.5_img-perc0.5_nsfrms-(1,3)-blurring_120x120_cov-0.5/occ3d-nus/'
+# data_root = './noisy_images/data-perc-0.75_img-perc0.75_nsfrms-(1,3)-blurring_120x120_cov-0.5/occ3d-nus/'
+# data_root = './noisy_images/data-perc-0.5_img-perc0.5_nsfrms-(1,3)-blurring_120x120_cov-0.75/occ3d-nus/'
+# data_root = './noisy_images/data-perc-0.75_img-perc0.75_nsfrms-(1,3)-blurring_120x120_cov-0.75/occ3d-nus/'
+
+# data_root = './noisy_images/data-perc-0.75_img-perc0.75_nsfrms-(3,4)-black_25x25_cov-0.1/occ3d-nus/'
+# data_root = './noisy_images/data-perc-0.75_img-perc0.75_nsfrms-(3,4)-black_25x25_cov-0.2/occ3d-nus/'
+# data_root = './noisy_images/data-perc-0.75_img-perc0.75_nsfrms-(3,4)-black_25x25_cov-0.3/occ3d-nus/'
+data_root = './noisy_images/data-perc-0.75_img-perc0.75_nsfrms-(3,4)-blurring_120x120_cov-0.15/occ3d-nus/'
+# data_root = './noisy_images/data-perc-0.75_img-perc0.75_nsfrms-(3,4)-blurring_120x120_cov-0.3/occ3d-nus/'
+# data_root = './noisy_images/data-perc-0.75_img-perc0.75_nsfrms-(3,4)-blurring_120x120_cov-0.5/occ3d-nus/'
+# data_root = './noisy_images/data-perc-0.75_img-perc0.75_nsfrms-(3,4)-blurring_120x120_cov-0.75/occ3d-nus/'
+pkl_root = data_root
 file_client_args = dict(backend='disk')
-occ_gt_data_root='data/occ3d-nus'
-pkl_root = 'data_gen/base_dataset/'
+occ_gt_data_root = data_root
 
 train_pipeline = [
     dict(type='LoadMultiViewImageFromFiles', to_float32=True),
@@ -230,7 +263,8 @@ total_epochs = 24
 evaluation = dict(interval=1, pipeline=test_pipeline)
 
 runner = dict(type='EpochBasedRunner', max_epochs=total_epochs)
-#load_from = 'ckpts/r101_dcn_fcos3d_pretrain.pth'
+# load_from = 'ckpts/r101_dcn_fcos3d_pretrain.pth'
+load_from = 'outputs/base/latest.pth'
 log_config = dict(
     interval=50,
     hooks=[

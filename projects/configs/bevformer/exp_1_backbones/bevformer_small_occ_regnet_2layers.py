@@ -31,7 +31,7 @@ input_modality = dict(
 _dim_ = 256
 _pos_dim_ = _dim_//2
 _ffn_dim_ = _dim_*2
-_num_levels_ = 3
+_num_levels_ = 2
 bev_h_ = 200
 bev_w_ = 200
 queue_length = 4 # each sequence contains `queue_length` frames.
@@ -42,7 +42,7 @@ model = dict(
     img_backbone=dict(
         type='RegNet',
         arch='regnetx_4.0gf',
-        out_indices=( 1,2,3),
+        out_indices=( 2,3),
         frozen_stages=1,
         norm_cfg=dict(type='BN', requires_grad=True),
         norm_eval=True,
@@ -51,7 +51,7 @@ model = dict(
             type='Pretrained', checkpoint='open-mmlab://regnetx_4.0gf')),
     img_neck=dict(
         type='FPN',
-        in_channels=[ 240,560,1360],
+        in_channels=[ 560,1360],
         out_channels=_dim_,
         start_level=0,
         add_extra_convs='on_output',

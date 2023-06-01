@@ -5,7 +5,7 @@ _base_ = [
 #
 plugin = True
 plugin_dir = 'projects/mmdet3d_plugin/'
-work_dir='outputs/exp1'
+
 # If point cloud range is changed, the models should also change their point
 # cloud range accordingly
 point_cloud_range = [-40, -40, -1.0, 40, 40, 5.4]
@@ -31,7 +31,7 @@ input_modality = dict(
 _dim_ = 256
 _pos_dim_ = _dim_//2
 _ffn_dim_ = _dim_*2
-_num_levels_ = 3
+_num_levels_ = 2
 bev_h_ = 200
 bev_w_ = 200
 queue_length = 4 # each sequence contains `queue_length` frames.
@@ -40,18 +40,27 @@ model = dict(
     use_grid_mask=True,
     video_test_mode=True,
     img_backbone=dict(
-        type='RegNet',
-        arch='regnetx_4.0gf',
-        out_indices=( 1,2,3),
+        type='Res2Net',
+        depth=101,
+        scales=4,
+        num_stages=4,
+        out_indices=(2,3),
         frozen_stages=1,
-        norm_cfg=dict(type='BN', requires_grad=True),
-        norm_eval=True,
-        style='pytorch',
+        base_width=26,
         init_cfg=dict(
-            type='Pretrained', checkpoint='open-mmlab://regnetx_4.0gf')),
+            type='Pretrained',
+            checkpoint='open-mmlab://res2net101_v1d_26w_4s'),
+        #norm_cfg=dict(type='BN2d', requires_grad=False),
+        #norm_eval=True,
+        #style='caffe',
+        #with_cp=True, # using checkpoint to save GPU memory
+        #dcn=dict(type='DCNv2', deform_groups=1, fallback_on_stride=False), # original DCNv2 will print log when perform load_state_dict
+        #stage_with_dcn=(False, False, True, True)
+        ),
+
     img_neck=dict(
         type='FPN',
-        in_channels=[ 240,560,1360],
+        in_channels=[1024, 2048],
         out_channels=_dim_,
         start_level=0,
         add_extra_convs='on_output',
@@ -143,7 +152,6 @@ dataset_type = 'NuSceneOcc'
 data_root = 'data/occ3d-nus/'
 file_client_args = dict(backend='disk')
 occ_gt_data_root='data/occ3d-nus'
-pkl_root = 'data_gen/base_dataset/'
 
 train_pipeline = [
     dict(type='LoadMultiViewImageFromFiles', to_float32=True),
@@ -184,7 +192,7 @@ data = dict(
     train=dict(
         type=dataset_type,
         data_root=data_root,
-        ann_file=pkl_root + 'occ_infos_temporal_train.pkl',
+        ann_file=data_root + 'occ_infos_temporal_train.pkl',
         pipeline=train_pipeline,
         classes=class_names,
         modality=input_modality,
@@ -197,13 +205,13 @@ data = dict(
         box_type_3d='LiDAR'),
     val=dict(type=dataset_type,
              data_root=data_root,
-             ann_file=pkl_root + 'occ_infos_temporal_val.pkl',
+             ann_file=data_root + 'occ_infos_temporal_val.pkl',
              pipeline=test_pipeline,  bev_size=(bev_h_, bev_w_),
              classes=class_names, modality=input_modality, samples_per_gpu=1),
     test=dict(type=dataset_type,
               data_root=data_root,
 
-              ann_file=pkl_root + 'occ_infos_temporal_val.pkl',
+              ann_file=data_root + 'occ_infos_temporal_val.pkl',
               pipeline=test_pipeline, bev_size=(bev_h_, bev_w_),
               classes=class_names, modality=input_modality),
     shuffler_sampler=dict(type='DistributedGroupSampler'),
